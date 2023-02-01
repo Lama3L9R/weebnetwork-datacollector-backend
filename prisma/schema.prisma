@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  uid                   String                  @id @default(uuid()) @map("_id")
+  role                  UserRole                @default(User)
+  email                 String                  @unique
+  displayName           String
+  password              String
+  registerDate          DateTime                @default(now())
+  invitation            Invitation?             @relation("Using", fields: [invitationId], references: [id])
+  invitationId          String
+  contributions         Float                   @default(0)
+  backgroundTraningData BackgroundTraningData[]
+  charactorTraningData  CharactorTraningData[]
+}
+
+model Invitation {
+  id      String  @id @default(uuid()) @map("_id")
+  usedBy  User[]  @relation("Using")
+  userUid String
+  notes   String?
+  max     Int
+}
+
+model Anime {
+  id                    String                  @id @default(uuid()) @map("_id")
+  name                  String                  @unique
+  episode               Float
+  frames                AnimeFrame[]
+  year                  Int
+  season                AnimeSeason
+  backgroundTraningData BackgroundTraningData[]
+  charactorTraningData  CharactorTraningData[]
+  jilijiliId            String
+}
+
+model AnimeFrame {
+  id                    String                  @id @default(uuid()) @map("_id")
+  anime                 Anime                   @relation(fields: [animeId], references: [id])
+  animeId               String
+  frameTime             Int
+  sizeX                 Int
+  sizeY                 Int
+  backgroundTraningData BackgroundTraningData[]
+  charactorTraningData  CharactorTraningData[]
+  SearchIndex           SearchIndex[]
+}
+
+model BackgroundTraningData {
+  id       String     @id @default(uuid()) @map("_id")
+  frame    AnimeFrame @relation(fields: [frameId], references: [id])
+  frameId  String
+  anime    Anime      @relation(fields: [animeId], references: [id])
+  animeId  String
+  pos1X    Int
+  pos1Y    Int
+  pos2X    Int
+  pos2Y    Int
+  item     String
+  itemTags String[]
+  from     User       @relation(fields: [fromUID], references: [uid])
+  fromUID  String
+  date     DateTime   @default(now())
+}
+
+model CharactorTraningData {
+  id        String     @id @default(uuid()) @map("_id")
+  frame     AnimeFrame @relation(fields: [frameId], references: [id])
+  frameId   String
+  anime     Anime      @relation(fields: [animeId], references: [id])
+  animeId   String
+  pos1X     Int
+  pos1Y     Int
+  pos2X     Int
+  pos2Y     Int
+  faceTags  String[]
+  clothTags String[]
+  from      User       @relation(fields: [fromUID], references: [uid])
+  fromUID   String
+  date      DateTime   @default(now())
+}
+
+model SearchIndex {
+  id               String     @id @default(uuid()) @map("_id")
+  frame            AnimeFrame @relation(fields: [frameId], references: [id])
+  frameId          String
+  charactorTraits  Json
+  backgroundTraits Json
+}
+
+enum AnimeSeason {
+  Spring
+  Summer
+  Autumn
+  Winter
+}
+
+enum UserRole {
+  Admin
+  User
+}
